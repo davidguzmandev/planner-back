@@ -24,3 +24,7 @@ pool.on('remove', () => {
 pool.on('error', (err: Error, client:any) => {
     console.error('Error, inactive client on the DB', err);
 })
+
+// Exporta la función 'query' que utiliza el pool para ejecutar consultas SQL.
+// Esto permite que otros módulos (como server.ts) importen y usen 'query'.
+export  const query = (text: string, params?: any[]) => pool.query(text, params);

@@ -1,5 +1,7 @@
-import express from 'express';
+import express, {Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import { Server } from 'http';
+
 
 dotenv.config();
 const app = express();
