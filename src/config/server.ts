@@ -1,27 +1,16 @@
-// Importa el módulo Express y sus tipos.
-import express, { Express, Request, Response } from 'express';
-// Importa dotenv para cargar variables de entorno.
 import dotenv from 'dotenv';
-// Importa el tipo Server del módulo 'http' de Node.js.
 import { Server } from 'http';
+import { query } from './db';
+import app from '../app';
 
-// Carga las variables de entorno.
 dotenv.config();
-
-// Crea una instancia de la aplicación Express directamente en este archivo.
-const app: Express = express(); // <-- ¡Instancia de Express aquí!
-
-// Define el puerto.
-const PORT: number = parseInt(process.env.PORT || '8080', 10);
-
-// --- Ruta Raíz Simple ---
-// Una ruta mínima para probar la conectividad HTTP.
-app.get('/', (req: Request, res: Response) => {
-  res.send('¡TEST: Servidor Express mínimo funcionando!');
-});
+const PORT: number = parseInt(process.env.PORT || '8000', 10);
 
 // --- Función para manejar errores al intentar iniciar el servidor ---
+// Esta función se encarga de errores que impiden que el servidor Express se vincule al puerto
+// (ej. puerto ya en uso) o de errores fatales a nivel de proceso.
 function handleServerStartupError(error: Error): void {
+    // Comprueba si el error es 'EADDRINUSE' (dirección/puerto ya en uso).
     if ((error as any).code === 'EADDRINUSE') {
         console.error(`Error: The port ${PORT} is already in use. Please choose a different port or stop the process using it.`);
     } else {
@@ -32,13 +21,17 @@ function handleServerStartupError(error: Error): void {
 }
 
 // --- Manejo de excepciones no capturadas y rechazos de promesas no manejados ---
+// Estos manejadores son CRUCIALES para la robustez en producción.
+// Capturan errores que no fueron atrapados por bloques try/catch o middlewares de Express,
+// evitando que la aplicación se caiga silenciosamente.
 process.on('uncaughtException', (error: Error) => {
     console.error('!!! Exception not caught in the process !!!');
     handleServerStartupError(error);
-});
+})
 
 process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
     console.error(' !!! Unhandled Rejection !!!');
+    // Es importante asegurarse de que 'reason' sea un objeto Error para acceder a su mensaje y stack.
     if (reason instanceof Error) {
         handleServerStartupError(reason);
     } else {
@@ -47,30 +40,55 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
     }
 });
 
-// Inicia el servidor Express vinculándolo explícitamente a '0.0.0.0'.
-// Esto se hace directamente, sin una función async para aislar aún más.
-const server: Server = app.listen(PORT, '0.0.0.0', (err?: Error) => {
-    if (err) {
-        handleServerStartupError(err);
-    } else {
-        console.log(`🚀 TEST: Servidor Express mínimo escuchando en puerto ${PORT} en todas las interfaces.`);
-        console.log(`TEST: Accede a http://82.25.93.170:${PORT}/ para verificar.`);
+// --- Función asíncrona principal para iniciar la aplicación ---
+// Esta función encapsula la lógica de verificación de la base de datos
+// y el inicio del servidor Express.
+async function startApp(): Promise<void> {
+    try {
+        console.log('Trying to connect to the database...');
+        // Realiza una consulta SQL simple (SELECT 1) para verificar si la base de datos
+        // es accesible y está operativa.
+        await query('SELECT 1')
+        console.log('✅ Database connection is successful. Starting the server...');
+        // Inicia el servidor express si la conexion con la DB es exitosa.
+        const server: Server = app.listen(PORT, '0.0.0.0', (err?: Error) => {
+            // El callback de listen() maneja errores específicos del enlace del puerto (ej. EADDRINUSE).
+            if (err) {
+                handleServerStartupError(err);
+            } else {
+                console.log(`🚀 Server listening on port ${PORT}`);
+                console.log(`This backend is ready on http://82.25.93.170:${PORT}/`);
+            }
+        });
+        // --- Manejo de señales de cierre del servidor (SIGTERM, SIGINT) ---
+        // Esto permite que el servidor realice un "cierre elegante" cuando recibe una señal
+        // de terminación (ej. de PM2, Docker o Ctrl+C en la terminal).
+        process.on('SIGTERM', () => {
+            console.log('Received SIGTERM, shutting down gracefully...');
+            server.close(() => {
+                console.log('Server closed.');
+                process.exit(0);// Sale del proceso con código de éxito.
+            });
+        });
+        process.on('SIGINT', () => {
+            console.log('Received SIGINT (Ctrl + C), shutting down gracefully...');
+            server.close(() => {
+                console.log('Server closed.');
+                process.exit(0);// Sale del proceso con código de éxito.
+            });
+        })
+
+    } catch (dbError) {
+        // Si la conexión a la base de datos falla al inicio (capturado por el 'await query'),
+        // registramos el error como crítico y salimos del proceso.
+        // Es fundamental que el servidor no inicie si no puede acceder a su base de datos.
+        console.error('❌ Critical error: Unable to connect to the database.');
+        console.error((dbError instanceof Error) ? dbError.message : 'Unknown error happenend while connecting to the database.');
+        process.exit(1); // Sale del proceso con un código de error.
     }
-});
+}
 
-// --- Manejo de señales de cierre del servidor (SIGTERM, SIGINT) ---
-process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, shutting down gracefully...');
-    server.close(() => {
-        console.log('Server closed.');
-        process.exit(0);
-    });
-});
+// Llama a la función principal para iniciar la aplicación.
+// startApp() es asíncrona, así que se ejecutará en segundo plano.
+startApp()
 
-process.on('SIGINT', () => {
-    console.log('Received SIGINT (Ctrl + C), shutting down gracefully...');
-    server.close(() => {
-        console.log('Server closed.');
-        process.exit(0);
-    });
-});
