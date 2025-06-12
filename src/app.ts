@@ -1,6 +1,8 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 const app: Express = express();
 app.use(express.json());
+app.use(cors());
 import authRouter from './routes/authRoutes';
 
 app.get('/', (req: Request, res: Response) => {
