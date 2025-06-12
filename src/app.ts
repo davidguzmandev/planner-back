@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 const app: Express = express();
 app.use(express.json());
+import authRouter from './routes/authRoutes';
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');
@@ -28,6 +29,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500).send('Internal Server Error');
 });
 
+// Importacion de rutas de la aplicacion
+app.use('/auth', authRouter);
 
 
 

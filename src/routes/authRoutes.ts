@@ -23,7 +23,7 @@ authRouter.get('/users', async (req: Request, res: Response) => {
 
 authRouter.post('/login', async (req: Request, res: Response): Promise<void> => {
     const { email } = req.body; // El front envia un cuerpo y en el extraemos el role
-    
+
     if (!email) {
         res.status(400).json({ message: 'Email is required' });
     }
