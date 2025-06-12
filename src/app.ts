@@ -28,6 +28,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500).send('Internal Server Error');
 });
 
+
+
+
 // Exporta la instancia de la aplicación Express configurada.
 // server.ts la importará para iniciar el servidor HTTP.
 export default app;
