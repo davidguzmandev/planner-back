@@ -5,6 +5,7 @@ import app from '../app';
 
 dotenv.config();
 const PORT: number = parseInt(process.env.PORT || '8000', 10);
+const IP = process.env.IP;
 
 // --- Función para manejar errores al intentar iniciar el servidor ---
 // Esta función se encarga de errores que impiden que el servidor Express se vincule al puerto
@@ -57,7 +58,7 @@ async function startApp(): Promise<void> {
                 handleServerStartupError(err);
             } else {
                 console.log(`🚀 Server listening on port ${PORT}`);
-                console.log(`This backend is ready on http://82.25.93.170:${PORT}/`);
+                console.log(`This backend is ready on ${IP}:${PORT}/`);
             }
         });
         // --- Manejo de señales de cierre del servidor (SIGTERM, SIGINT) ---
