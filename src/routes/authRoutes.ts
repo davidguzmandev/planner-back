@@ -1,15 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { query } from '../config/db';
-import { UserModel } from '../models/Users';
+import { UserModel, User } from '../models/Users';
 
 const authRouter = Router();
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-}
 
 // --- Ruta para obtener el perfil del usuario autenticado ---
 authRouter.get('/users', async (req: Request, res: Response) => {

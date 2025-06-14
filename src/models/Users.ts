@@ -1,6 +1,6 @@
 import { query } from '../config/db';
 
-interface User {
+export interface User {
     id: string;
     name: string;
     email: string;
