@@ -9,6 +9,10 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');
 });
 
+// Importacion de rutas de la aplicacion
+// Las rutas de la app deben ir antes del manejador 404
+app.use('/auth', authRouter);
+
 // --- Middleware para manejar rutas no encontradas (404 Not Found) ---
 // Este middleware se ejecutará si ninguna de las rutas definidas (incluida la ruta raíz de arriba)
 // coincide con la solicitud. Se coloca antes del middleware global de manejo de errores.
@@ -31,8 +35,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500).send('Internal Server Error');
 });
 
-// Importacion de rutas de la aplicacion
-app.use('/auth', authRouter);
 
 
 
