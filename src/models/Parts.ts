@@ -20,6 +20,11 @@ export class PartModel {
         const result = await query('SELECT * FROM parts ORDER BY part_number ASC');
         return result.rows as Part[];
     }
+    static  async getPartById(id: string): Promise<Part | null> {
+        const result = await query('SELECT * FROM parts WHERE id =$1', [id]);
+        return result.rows.length > 0 ? result.rows[0] as Part : null;
+    }
+    
     static async getPartByPartNumber(part_number:string): Promise<Part | null> {
         const result = await query (' SELECT * FROM parts WHERE part_number = $1', [part_number]);
         return result.rows.length > 0 ? result.rows[0] as Part : null;
@@ -31,15 +36,15 @@ export class PartModel {
             `INSERT INTO parts (
                 part_number, description, project_id, product_id, coefficient, comments, destination_id, quantity_requested, quantity_remaining
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-            [ 
-                part_number, 
-                description || null, 
-                project_id, 
-                product_id, 
-                coefficient || null, 
-                comments || null, 
-                destination_id, 
-                quantity_requested, 
+            [
+                part_number,
+                description || null,
+                project_id,
+                product_id,
+                coefficient || null,
+                comments || null,
+                destination_id,
+                quantity_requested,
                 quantity_remaining
             ]
         );

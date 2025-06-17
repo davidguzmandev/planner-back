@@ -4,6 +4,7 @@ const app: Express = express();
 app.use(express.json());
 app.use(cors());
 import authRouter from './routes/authRoutes';
+import partRouter from './routes/partsRouter'
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');
@@ -12,6 +13,7 @@ app.get('/', (req: Request, res: Response) => {
 // Importacion de rutas de la aplicacion
 // Las rutas de la app deben ir antes del manejador 404
 app.use('/auth', authRouter);
+app.use('/part', partRouter);
 
 // --- Middleware para manejar rutas no encontradas (404 Not Found) ---
 // Este middleware se ejecutará si ninguna de las rutas definidas (incluida la ruta raíz de arriba)
