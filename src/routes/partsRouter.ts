@@ -38,7 +38,7 @@ partRouter.get('/parts/:id', async (req: Request, res: Response): Promise<void> 
 });
 
 //Solicitud GET para obtener part por part_number
-partRouter.get('/parts/:part_number', async (req: Request, res: Response): Promise<void> => {
+partRouter.get('/parts/bpn/:part_number', async (req: Request, res: Response): Promise<void> => {
     const { part_number } = req.params;
     if (!part_number){
         res.status(400).json({ message: 'Part number is required' });
@@ -64,8 +64,11 @@ partRouter.post('/parts', async (req: Request, res: Response): Promise<void> => 
     const newPart: Omit<Part, 'id' | 'created_at' | 'update_at'> = req.body; // Extrae el cuerpo de la solicitud
     const {
         part_number,
+        description,
         project_id,
         product_id,
+        coefficient,
+        comments,
         destination_id,
         quantity_requested,
         quantity_remaining

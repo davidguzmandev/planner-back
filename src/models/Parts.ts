@@ -25,9 +25,9 @@ export class PartModel {
         return result.rows.length > 0 ? result.rows[0] as Part : null;
     }
     
-    static async getPartByPartNumber(part_number:string): Promise<Part | null> {
-        const result = await query (' SELECT * FROM parts WHERE part_number = $1', [part_number]);
-        return result.rows.length > 0 ? result.rows[0] as Part : null;
+    static async getPartByPartNumber(part_number_fragment:string): Promise<Part[]> {
+        const result = await query (' SELECT * FROM parts WHERE LOWER(part_number) LIKE $1 ORDER BY part_number ASC', [`%${part_number_fragment.toLowerCase()}`]);
+        return result.rows as Part[];
     }
     static async createPart(newPart: Omit<Part, 'id' | 'created_at' | 'updated_at'>): Promise <Part> {
         const { part_number, description, project_id, product_id, coefficient, comments, destination_id, quantity_requested, quantity_remaining } = newPart;
