@@ -5,6 +5,7 @@ app.use(express.json());
 app.use(cors());
 import authRouter from './routes/authRoutes';
 import partRouter from './routes/partsRoutes'
+import deliveryRouter from './routes/deliveryRoutes'
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');
@@ -14,7 +15,7 @@ app.get('/', (req: Request, res: Response) => {
 // Las rutas de la app deben ir antes del manejador 404
 app.use('/auth', authRouter);
 app.use('/part', partRouter);
-
+app.use('/delivery', deliveryRouter);
 // --- Middleware para manejar rutas no encontradas (404 Not Found) ---
 // Este middleware se ejecutará si ninguna de las rutas definidas (incluida la ruta raíz de arriba)
 // coincide con la solicitud. Se coloca antes del middleware global de manejo de errores.
