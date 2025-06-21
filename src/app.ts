@@ -5,7 +5,7 @@ app.use(express.json());
 app.use(cors());
 import authRouter from './routes/authRoutes';
 import partRouter from './routes/partsRoutes'
-import deliveryRouter from './routes/deliveryRoutes'
+import deliveryRouter from './routes/deliveryPlanRoutes'
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');

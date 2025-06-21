@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { DeliveryPlanModel, DeliveryPlan } from '../models/Delivery';
+import { DeliveryPlanModel, DeliveryPlan } from '../models/DeliveryPlan';
 const deliveryRouter = Router();
 
 //Ruta GET para obtener todos los planes de entrega
@@ -23,7 +23,7 @@ deliveryRouter.get('/delivery/:id', async (req: Request, res: Response): Promise
         return;
     }
     try {
-        const deliveryPlan = await DeliveryPlanModel.getDeliveryPlanById(id);
+        const deliveryPlan = await DeliveryPlanModel.getDeliveryPlanById(Number(id));
         if(!deliveryPlan){
             res.status(404).json({ message: `Delivery plan with ID ${id} not found`})
             return;

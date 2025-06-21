@@ -12,9 +12,9 @@ export interface DeliveryPlan {
     updated_at: Date;
     part_id: string;
     // Campos obtenidos mediante JOIN
-    part_number: string;
-    part_description: string;
-    part_quantity_remaining: number;
+    part_number?: string;
+    part_description?: string;
+    part_quantity_remaining?: number;
 };
 
 export class DeliveryPlanModel {
@@ -51,13 +51,13 @@ export class DeliveryPlanModel {
     }
     
     //Solicitud GET para obtener una parte por numero de parte
-    static async getDeliveryPlanByPartNumber(part_number:string): Promise<DeliveryPlan[] | null> {
-        const result = await query(`${this.getBaseDeliveryPlanQuery()} WHERE p.part_number = $1`, [part_number]);
-        return result.rows.length > 0 ? result.rows as DeliveryPlan[] : null;
+    static async getDeliveryPlanByPartNumber(part_number:string): Promise<DeliveryPlan[]> {
+        const result = await query(`${this.getBaseDeliveryPlanQuery()} WHERE LOWER (p.part_number)LIKE $1 ORDER BY dp.week_start_date ASC`, [`%${part_number.toLowerCase()}%`]);
+        return result.rows as DeliveryPlan[];
     }
 
     //Solicitud POST para crear una nueva parte
-    static async createDeliveryPlan(newDeliveryPlan: Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week'>): Promise<DeliveryPlan> {
+    static async createDeliveryPlan(newDeliveryPlan: Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week' | 'quantity_declared_this_week'> & { quantity_declared_this_week?: number }): Promise<DeliveryPlan> {
         const {
             week_start_date,
             week_number,
@@ -68,7 +68,13 @@ export class DeliveryPlanModel {
         } = newDeliveryPlan;
         const result = await query(
             `INSERT INTO delivery_plan (week_start_date, week_number, year, quantity_this_week, quantity_declared_this_week, part_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [week_start_date, week_number, year, quantity_this_week, quantity_declared_this_week ?? 0,part_id]
+            [
+                week_start_date, 
+                week_number, year, 
+                quantity_this_week, 
+                quantity_declared_this_week ?? 0,
+                part_id
+            ]
         );
         return result.rows[0] as DeliveryPlan;
     }
