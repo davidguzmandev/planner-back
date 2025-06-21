@@ -73,6 +73,7 @@ export class DeliveryPlanModel {
         return result.rows[0] as DeliveryPlan;
     }
 
+    //Solicitud PATCH para actualizar parcialmente parts
     static async updateDeliveryPlan(id:number, updates: Partial<Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week'>>): Promise<DeliveryPlan | null> {
         const setClauses: string[] = [];
         const values: any[] = [];
