@@ -32,7 +32,7 @@ deliveryRouter.get('/delivery/:id', async (req: Request, res: Response): Promise
         return;
     } catch (error) {
         console.error(`Error fetching delivery plan with ID: ${id}: `, error);
-        res.status(500).json({ message: `Error fetching delivery plan with ID: ${id}`});
+        res.status(500).json({ message: `Internal server error while fetching delivery plan`});
         return;
     }
 });
@@ -46,22 +46,22 @@ deliveryRouter.get('/delivery/bpn/:part_number', async (req: Request, res: Respo
     }
     try {
         const deliveryPlan = await DeliveryPlanModel.getDeliveryPlanByPartNumber(part_number);
-        if(!deliveryPlan){
-            res.status(404).json({ message: `Delivery plan with part number ${part_number} not found`})
+        if(deliveryPlan.length === 0){
+            res.status(200).json({ message: `Delivery plan with part number ${part_number} not found`})
             return;
         }
         res.status(200).json(deliveryPlan);
         return;
     } catch (error) {
         console.error(`Error fetching delivery plan with part number: ${part_number}: `, error);
-        res.status(500).json({ message: `Error fetching delivery plan with part number: ${part_number}`});
+        res.status(500).json({ message: `Internal server error while fetching delivery plan`});
         return;
     }
 })
 
 //Ruta POST para crear un nuevo Delivery Plan
 deliveryRouter.post('/delivery', async (req: Request, res: Response): Promise<void> => {
-    const newDeliveryPlan: Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week'> = req.body;
+    const newDeliveryPlan: Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week'> & { quantity_declared_this_week?: number } = req.body;
     const {
         week_start_date,
         week_number,
@@ -71,7 +71,7 @@ deliveryRouter.post('/delivery', async (req: Request, res: Response): Promise<vo
         part_id
     } = newDeliveryPlan
     
-    if(!week_start_date || !week_number || !year || !quantity_this_week || !part_id){
+    if(!week_start_date || !week_number || !year || quantity_this_week === undefined || !part_id){
         res.status(400).json({ message: 'All fields with * are required.' });
         return;
     }
@@ -91,7 +91,7 @@ deliveryRouter.post('/delivery', async (req: Request, res: Response): Promise<vo
             return;
         }
         console.error('Error creating delivery plan:', error);
-        res.status(500).json({ message: 'Error creating delivery plan.' });
+        res.status(500).json({ message: 'Internal server error while creating delivery plan.' });
         return;
     }
 });
@@ -100,15 +100,18 @@ deliveryRouter.post('/delivery', async (req: Request, res: Response): Promise<vo
 deliveryRouter.patch('/delivery/:id', async(req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const updates: Partial<Omit<DeliveryPlan, 'id' | 'created_at' | 'updated_at' | 'part_number' | 'part_description' | 'part_quantity_remaining' | 'quantity_pending_this_week'>> = req.body;
-    
-    if(!id || Object.keys(updates).length === 0){
-        res.status(400).json({ message: 'ID part and at least one field to update is required'})
+    // id es un parámetro de URL string, necesitas convertirlo a Number
+    const deliveryPlanId = Number(id);
+
+    // Validación: ID y al menos un campo válido para actualizar son requeridos.
+    if (!id || isNaN(deliveryPlanId) || Object.keys(updates).length === 0) {
+        res.status(400).json({ message: 'ID del plan de entrega (numérico) y al menos un campo válido para actualizar son requeridos.' });
         return;
     }
     try {
-        const updatedDeliveryPlan = await DeliveryPlanModel.updateDeliveryPlan(Number(id), updates);
+        const updatedDeliveryPlan = await DeliveryPlanModel.updateDeliveryPlan(deliveryPlanId, updates);
         if(!updatedDeliveryPlan){
-            res.status(404).json({ message: `Delivery plan with ID ${id} not found or no valid fields were provided to update`});
+            res.status(404).json({ message: `Delivery plan with ID ${id} not found`});
             return;
         }
         res.status(200).json({
@@ -125,7 +128,7 @@ deliveryRouter.patch('/delivery/:id', async(req: Request, res: Response): Promis
             return;
         }
         console.error(`Error trying to update the delivery plan with ID ${id}:`, error);
-        res.status(500).json({ message: `Error trying to update the delivery plan with ID ${id}.`})
+        res.status(500).json({ message: `Internal server error while updating delivery plan`})
         return;
     }
 });
@@ -133,12 +136,14 @@ deliveryRouter.patch('/delivery/:id', async(req: Request, res: Response): Promis
 //Ruta DELETE para eliminar un delivery plan
 deliveryRouter.delete('/delivery/:id', async (req: Request, res: Response): Promise<void> => {
     const {id} = req.params;
-    if(!id){
-        res.status(400).json({ message: 'Delivery Plan ID is required'});
+    const deliveryPlanId = Number(id); // Convertir a número
+
+    if (!id || isNaN(deliveryPlanId)) {
+        res.status(400).json({ message: 'El ID del plan de entrega (numérico) es requerido para la eliminación.' });
         return;
     }
     try {
-        const deleted = await DeliveryPlanModel.deleteDeliveryPlan(Number(id));
+        const deleted = await DeliveryPlanModel.deleteDeliveryPlan(deliveryPlanId);
         if(!deleted){
             res.status(404).json({ message: `Delivery plan with ID ${id} not found`});
             return;
