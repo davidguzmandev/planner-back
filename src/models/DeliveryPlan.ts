@@ -12,7 +12,7 @@ export interface DeliveryPlan {
     quantity_rejected: number; // NOT NULL, DEFAULT 0
     reasons: string | null; // Nullable
     qc_member: string | null; // Nullable
-    responsible: string; // NOT NULL (como se define en tu schema)
+    responsible: string | null; 
     comment: string | null; // Nullable
     created_at: Date;
     updated_at: Date;
@@ -43,7 +43,7 @@ export class DeliveryPlanModel {
             dp.updated_at,
             dp.part_id,
             p.part_number AS part_number,
-            p.description AS part_description,
+            p.description AS part_description
         FROM delivery_plan dp
         JOIN parts p ON dp.part_id = p.id
         `;
@@ -92,7 +92,7 @@ export class DeliveryPlanModel {
             comment
         } = newDeliveryPlan;
         const result = await query(
-            `NSERT INTO delivery_plan (
+            `INSERT INTO delivery_plan (
                 part_id, week_start_date, week_number, year,
                 priority_rank,
                 inspection_date, quantity_to_inspect, quantity_inspected, quantity_rejected,
@@ -110,7 +110,7 @@ export class DeliveryPlanModel {
                 quantity_rejected ?? 0,
                 reasons ?? null,
                 qc_member ?? null,
-                responsible,
+                responsible ?? null,
                 comment ?? null
             ]
         );
