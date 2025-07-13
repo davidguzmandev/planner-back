@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PartModel, Part } from '../models/Parts';
+import { PartModel, Part, PartRow } from '../models/Parts';
 const partRouter = Router();
 
 // Solicitud GET para obtener todas las partes
@@ -61,7 +61,7 @@ partRouter.get('/parts/bpn/:part_number', async (req: Request, res: Response): P
 
 //Solicitud POST para crear una nueva parte
 partRouter.post('/parts', async (req: Request, res: Response): Promise<void> => {
-    const newPart: Omit<Part, 'id' | 'created_at' | 'update_at'> = req.body; // Extrae el cuerpo de la solicitud
+    const newPart: Omit<PartRow, 'id' | 'created_at' | 'update_at'> = req.body; // Extrae el cuerpo de la solicitud
     const {
         part_number,
         description,
@@ -107,7 +107,7 @@ partRouter.post('/parts', async (req: Request, res: Response): Promise<void> => 
 //Solicitud PATCH para actualizar parcialmente parts
 partRouter.patch('/parts/:id', async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params
-    const updates: Partial<Omit<Part, 'id' | 'created_at' | 'updated_at'>> = req.body;
+    const updates: Partial<Omit<PartRow, 'id' | 'created_at' | 'updated_at'>> = req.body;
 
     if(!id || Object.keys(updates).length === 0) {
         res.status(400).json({ message: 'ID part and at least one field to update is required'})
