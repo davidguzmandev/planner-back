@@ -15,7 +15,8 @@ export interface PartRow {
   destination_id: number;
 }
 
-export interface Part extends Omit<PartRow, "project_id" | "product_id" | "destination_id"> {
+export interface Part
+  extends Omit<PartRow, "project_id" | "product_id" | "destination_id"> {
   project_name: string;
   product_name: string;
   destination_name: string;
@@ -35,17 +36,17 @@ export class PartModel {
         p.quantity_remaining,
         p.created_at,
         p.updated_at,
-        proj.name AS project_name,
-        prod.name AS product_name,
-        dest.name AS destination_name
+        proj.name  AS project_name,
+        prod.name  AS product_name,
+        dest.name  AS destination_name
       FROM parts p
       JOIN projects    proj ON p.project_id     = proj.id
       JOIN products    prod ON p.product_id     = prod.id
       JOIN destinations dest ON p.destination_id = dest.id
       ORDER BY p.part_number ASC;
-    `;
-    const res = await query<Part>(sql);
-    return res.rows;
+    `
+    const result = await query(sql)
+    return result.rows as Part[]
   }
 
   static async getPartById(id: string): Promise<Part | null> {
@@ -60,17 +61,17 @@ export class PartModel {
         p.quantity_remaining,
         p.created_at,
         p.updated_at,
-        proj.name AS project_name,
-        prod.name AS product_name,
-        dest.name AS destination_name
+        proj.name  AS project_name,
+        prod.name  AS product_name,
+        dest.name  AS destination_name
       FROM parts p
       JOIN projects    proj ON p.project_id     = proj.id
       JOIN products    prod ON p.product_id     = prod.id
       JOIN destinations dest ON p.destination_id = dest.id
       WHERE p.id = $1;
-    `;
-    const res = await query<Part>(sql, [id]);
-    return res.rows[0] ?? null;
+    `
+    const result = await query(sql, [id])
+    return result.rows[0] as Part | null
   }
 
   static async getPartByPartNumber(fragment: string): Promise<Part[]> {
@@ -85,18 +86,19 @@ export class PartModel {
         p.quantity_remaining,
         p.created_at,
         p.updated_at,
-        proj.name AS project_name,
-        prod.name AS product_name,
-        dest.name AS destination_name
+        proj.name  AS project_name,
+        prod.name  AS product_name,
+        dest.name  AS destination_name
       FROM parts p
       JOIN projects    proj ON p.project_id     = proj.id
       JOIN products    prod ON p.product_id     = prod.id
       JOIN destinations dest ON p.destination_id = dest.id
       WHERE LOWER(p.part_number) LIKE $1
       ORDER BY p.part_number ASC;
-    `;
-    const res = await query<Part>(sql, [`%${fragment.toLowerCase()}%`]);
-    return res.rows;
+    `
+    const param = `%${fragment.toLowerCase()}%`
+    const result = await query(sql, [param])
+    return result.rows as Part[]
   }
 
   static async createPart(
@@ -112,7 +114,8 @@ export class PartModel {
       project_id,
       product_id,
       destination_id,
-    } = newPart;
+    } = newPart
+
 
     const insertSql = `
       INSERT INTO parts (
@@ -127,8 +130,8 @@ export class PartModel {
         destination_id
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
       RETURNING id;
-    `;
-    const insertRes = await query<{ id: string }>(insertSql, [
+    `
+    const insertRes = await query(insertSql, [
       part_number,
       description ?? null,
       coefficient ?? null,
@@ -138,53 +141,48 @@ export class PartModel {
       project_id,
       product_id,
       destination_id,
-    ]);
+    ])
+    const newId = insertRes.rows[0].id
 
-    return this.getPartById(insertRes.rows[0].id) as Promise<Part>;
+    return (await this.getPartById(newId))!
   }
 
   static async updatePart(
     id: string,
     updates: Partial<Omit<PartRow, "id" | "created_at" | "updated_at">>
   ): Promise<Part | null> {
-    const setClauses: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
+    const setClauses: string[] = []
+    const values: any[] = []
+    let idx = 1
 
     for (const [key, val] of Object.entries(updates)) {
       if (val !== undefined) {
-        setClauses.push(`${key} = $${idx}`);
-        values.push(val);
-        idx++;
+        setClauses.push(`${key} = $${idx}`)
+        values.push(val)
+        idx++
       }
     }
-    if (setClauses.length === 0) return null;
+    if (setClauses.length === 0) return null
 
-    // Actualizar updated_at
-    setClauses.push(`updated_at = $${idx}`);
-    values.push(new Date());
-    idx++;
+    setClauses.push(`updated_at = $${idx}`)
+    values.push(new Date())
+    idx++
+    values.push(id)
 
-    // WHERE id = $idx
-    values.push(id);
-
-    const updateSql = `
+    const sql = `
       UPDATE parts
       SET ${setClauses.join(", ")}
       WHERE id = $${idx}
       RETURNING id;
-    `;
-    const updateRes = await query<{ id: string }>(updateSql, values);
-    if (updateRes.rows.length === 0) return null;
+    `
+    const res = await query(sql, values)
+    if (res.rows.length === 0) return null
 
-    return this.getPartById(updateRes.rows[0].id) as Promise<Part>;
+    return this.getPartById(res.rows[0].id)
   }
-
   static async deletePart(id: string): Promise<boolean> {
-    const res = await query<{ id: string }>(
-      `DELETE FROM parts WHERE id = $1 RETURNING id;`,
-      [id]
-    );
-    return res.rows.length > 0;
+    const sql = `DELETE FROM parts WHERE id = $1 RETURNING id;`
+    const res = await query(sql, [id])
+    return res.rows.length > 0
   }
 }
