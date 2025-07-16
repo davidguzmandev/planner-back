@@ -125,6 +125,7 @@ partRouter.patch('/parts/:id', async (req: Request, res: Response): Promise<void
         })
         return;
     } catch (error: any) {
+        console.error(`Error updating part ${id}:`, error.stack || error);
         // Maneja errores de clave foránea (código SQLSTATE 23503 para foreign_key_violation).
         if((error as any).code === '23503'){
             const detail = (error as any).detail || 'Referenced to inexistent foreign key.';
