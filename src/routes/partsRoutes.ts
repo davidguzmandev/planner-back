@@ -135,7 +135,7 @@ partRouter.patch('/parts/:id', async (req: Request, res: Response): Promise<void
         }
         // Manejo de errores genericos
         console.error(`Error trying to update the part with ID ${id}:`, error);
-        res.status(500).json({ message: `Error trying to update the part with ID #${id}.`})
+        res.status(500).json({ message: error.message || `Error trying to update the part with ID ${id}.`})
         return;
     }
 });
