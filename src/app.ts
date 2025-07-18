@@ -6,6 +6,9 @@ app.use(cors());
 import authRouter from './routes/authRoutes';
 import partRouter from './routes/partsRoutes'
 import deliveryRouter from './routes/deliveryPlanRoutes'
+import productRouter from './routes/productRoutes';
+import destinationRouter from './routes/destinationRoutes';
+import projectRouter from './routes/projectRoutes';
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Planner App!');
@@ -16,6 +19,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/auth', authRouter);
 app.use('/part', partRouter);
 app.use('/delivery', deliveryRouter);
+app.use('/products', productRouter);
+app.use('/destinations', destinationRouter);
+app.use('/projects', projectRouter);
+
 // --- Middleware para manejar rutas no encontradas (404 Not Found) ---
 // Este middleware se ejecutará si ninguna de las rutas definidas (incluida la ruta raíz de arriba)
 // coincide con la solicitud. Se coloca antes del middleware global de manejo de errores.
@@ -37,9 +44,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     // Aquí enviamos un mensaje genérico de error interno del servidor.
     res.status(500).send('Internal Server Error');
 });
-
-
-
 
 // Exporta la instancia de la aplicación Express configurada.
 // server.ts la importará para iniciar el servidor HTTP.
