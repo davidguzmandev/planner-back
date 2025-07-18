@@ -3,7 +3,7 @@ import { DestinationModel } from '../models/Destination';
 const destinationRouter = Router();
 
 // Solicitud GET para obtener todos los destinos
-destinationRouter.get('/destinations', async (req: Request, res: Response): Promise<void> => {
+destinationRouter.get('/', async (req: Request, res: Response): Promise<void> => {
     try {
         const destinations = await DestinationModel.getAllDestinations();
         res.status(200).json(destinations);

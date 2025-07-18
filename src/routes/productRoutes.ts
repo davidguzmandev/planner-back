@@ -3,7 +3,7 @@ import { ProductModel } from '../models/Product';
 const productRouter = Router();
 
 // Solicitud GET para obtener todos los productos
-productRouter.get('/products', async (req: Request, res: Response): Promise<void> => {
+productRouter.get('/', async (req: Request, res: Response): Promise<void> => {
     try {
         const products = await ProductModel.getAllProducts();
         res.status(200).json(products);

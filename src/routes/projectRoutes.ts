@@ -3,7 +3,7 @@ import { ProjectModel } from '../models/Project';
 const projectRouter = Router();
 
 // Solicitud GET para obtener todos los proyectos
-projectRouter.get('/projects', async (req: Request, res: Response): Promise<void> => {
+projectRouter.get('/', async (req: Request, res: Response): Promise<void> => {
     try {
         const projects = await ProjectModel.getAllProjects();
         res.status(200).json(projects);
